@@ -1,0 +1,41 @@
+_BASE_: "../Base-RCNN-FPN-Cali.yaml"
+MODEL:
+  META_ARCHITECTURE: "TwoStagePseudoLabGeneralizedRCNN"
+  WEIGHTS: "out_c2/model_final.pth"
+  MASK_ON: False
+  RESNETS:
+    DEPTH: 50
+  PROPOSAL_GENERATOR:
+    NAME: "PseudoLabRPN"
+  RPN:
+    POSITIVE_FRACTION: 0.25
+    LOSS: "CrossEntropy"
+  ROI_HEADS:
+    NAME: "StandardROIHeadsPseudoLab"
+    LOSS: "FocalLoss"
+    NUM_CLASSES: 80
+  CALIBRATION_ROI_HEADS:
+    NAME: "StandardROIHeadsCalibration"
+    LOSS: "CaliLoss"  
+SOLVER:
+  LR_SCHEDULER_NAME: "WarmupMultiStepLR"
+  STEPS: (6400, 12800)
+  MAX_ITER: 12800
+  IMG_PER_BATCH_UNLABEL: 16
+  BASE_LR: 0.01
+DATALOADER:
+  RANDOM_DATA_SEED: 1
+DATASETS:
+  CROSS_DATASET: False
+  TRAIN: ("acdc_noise_20",)
+  TEST: ("acdc_noise_test",)
+SEMISUPNET:
+  Trainer: "ubteacher"
+  BBOX_THRESHOLD: 0.7
+  TEACHER_UPDATE_ITER: 1
+  BURN_UP_STEP: 0
+  EMA_KEEP_RATE: 0.999
+  UNSUP_LOSS_WEIGHT: 1.0
+TEST:
+  EVAL_PERIOD: 12801
+OUTPUT_DIR: ./out_c2
